@@ -1,38 +1,56 @@
 package main
 
 import (
+	"bufio"
 	"fmt"
 	"github.com/foomo/htpasswd"
 	"log"
+	"os"
+	"strings"
 )
 
 func main() {
-	var filepath,newpwd string
+	var filepath, newpwd string
 	fmt.Print("please enter the file path:")
-	fmt.Scanf("%s\n",&filepath)
+	fmt.Scanf("%s\n", &filepath)
 	fmt.Print("new password:")
-	fmt.Scanf("%s\n",&newpwd)
-	users:=ReadUsers(filepath)
-	SetUserPassword(filepath,users,newpwd)
-	fmt.Printf("the passwords of all users located in file '%s' have been successfully changed to '%s'\n",filepath,newpwd)
-	fmt.Printf("press the enter key to terminate the console screen")
-	fmt.Scanln()
+	fmt.Scanf("%s\n", &newpwd)
+	users := ReadUsers(filepath)
+	SetUserPassword(filepath, users, newpwd)
+	fmt.Printf("the passwords of all users located in file '%s' have been successfully changed to '%s'\n", filepath, newpwd)
 }
 func ReadUsers(filepath string) ([]string) {
-	passwords, err1 := htpasswd.ParseHtpasswdFile(filepath)
-	if err1!=nil{
-		log.Fatal(err1)
-	}
 	var users []string
-	for k,_:=range passwords{
-		users=append(users,k)
+	file, err := os.Open(filepath)
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer file.Close()
+	scanner := bufio.NewScanner(file)
+	tempMap := map[string]int{}
+	for scanner.Scan() {
+		temp := strings.Split(scanner.Text(), ":")
+		if len(temp) == 2 {
+			user := temp[0]
+			if tempMap[user] == 0 {
+				users = append(users, user)
+			}
+			tempMap[user] = 1
+		}
+	}
+	if err := scanner.Err(); err != nil {
+		log.Fatal(err)
 	}
 	return users
 }
-func SetUserPassword(filepath string,users[]string,pwd string){
- 	for  _,v:=range users{
+func SetUserPassword(filepath string, users []string, pwd string) {
+	rmErr := os.Remove(filepath)
+	if rmErr != nil {
+		log.Fatal(rmErr)
+	}
+	for _, v := range users {
 		err := htpasswd.SetPassword(filepath, v, pwd, htpasswd.HashBCrypt)
-		if err!=nil{
+		if err != nil {
 			log.Fatal(err)
 		}
 	}
