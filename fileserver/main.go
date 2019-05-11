@@ -2,10 +2,11 @@ package main
 
 import (
 	"flag"
-	"fmt"
+	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -25,14 +26,25 @@ func BindHandlers(){
 	http.Handle("/filelist", http.HandlerFunc(FileList))
 }
 
+type FileListModel struct{
+	Path string
+	Files []os.FileInfo
+}
+
 func FileList(w http.ResponseWriter, req *http.Request){
-	fmt.Fprintln(w,config.FileLocation)
+	var data FileListModel
+	data.Path="/root"
+
 	files, err := ioutil.ReadDir(config.FileLocation)
 	if err != nil {
 		log.Fatal(err)
 	}
+	data.Files=files
 
-	for _, f := range files {
-		fmt.Fprintln(w,f.Name())
+	tmpl,err:=template.ParseFiles("templates/filelist.html")
+	if err != nil {
+		log.Fatal(err)
 	}
+
+	tmpl.Execute(w,data)
 }
