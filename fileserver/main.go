@@ -3,6 +3,7 @@ package main
 import (
 	"flag"
 	"fmt"
+	"github.com/github-123456/gostudy/aesencryption"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -24,6 +25,8 @@ func init()  {
 	config=ReadConfig()
 	BindHandlers()
 }
+
+
 
 func BindHandlers(){
 	mux:=http.NewServeMux()
@@ -63,10 +66,12 @@ func FileList(w http.ResponseWriter, req *http.Request){
 	if err != nil {
 		log.Fatal(err)
 	}
-
 	tmpl.Execute(w,data)
 }
 
 func Download(w http.ResponseWriter, req *http.Request){
-	fmt.Fprint(w,"maintaining...")
+	cipher:=aesencryption.Encrypt("hello world!")
+	plain:=aesencryption.Decrypt(cipher)
+	fmt.Fprintln(w,cipher)
+	fmt.Fprintln(w,plain)
 }
