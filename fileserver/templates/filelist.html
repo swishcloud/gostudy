@@ -3,15 +3,41 @@
 <head>
     <meta charset="UTF-8">
     <title>hello world</title>
+    <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.8.2/css/all.css" integrity="sha384-oS3vJWv+0UjzBfQzYUhtDYW+Pj2yciDJxpsK1OYPAYjqT085Qq/1cq5FLXAZQ7Ay" crossorigin="anonymous">
 </head>
 <body>
-<h3>{{.Path}}</h3>
-<ul>
-{{range .Files}}
-        <li>
-            <span> {{.Name}}</span><span> {{.Size}}</span>
-        </li>
-{{end}}
-</ul>
+{{$path:=.Path}}
+<h3>/{{.Path}}</h3>
+<table>
+    <thead>
+    <tr>
+        <th></th>
+        <th>name</th>
+        <th>size</th>
+    </tr>
+    </thead>
+    <tbody>
+    {{range .Files}}
+        <tr>
+            <td>
+                {{if .IsDir}}   <i class="fas fa-folder"></i> {{else}} <i class="fas fa-file"></i>{{end}}
+            </td>
+            <td>
+                {{if .IsDir}}
+                    {{if $path}}
+                    <a href="/filelist/{{$path}}/{{.Name}}">{{.Name}}</a>
+                    {{else}}
+                        <a href="/filelist/{{.Name}}">{{.Name}}</a>
+                    {{end}}
+                {{else}}
+                    {{.Name}}
+                {{end}}
+
+            </td>
+            <td>{{.Size}}</td>
+        </tr>
+    {{end}}
+    </tbody>
+</table>
 </body>
 </html>

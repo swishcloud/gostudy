@@ -2,11 +2,14 @@ package main
 
 import (
 	"flag"
+	"fmt"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
+	"path/filepath"
+	"regexp"
 )
 
 func main() {
@@ -23,7 +26,19 @@ func init()  {
 }
 
 func BindHandlers(){
-	http.Handle("/filelist", http.HandlerFunc(FileList))
+	mux:=http.NewServeMux()
+	http.Handle("/",mux)
+	mux.Handle("/filelist/", http.HandlerFunc(FileList))
+	mux.Handle("/download", http.HandlerFunc(Download))
+	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
+		// The "/" pattern matches everything, so we need to check
+		// that we're at the root here.
+		if req.URL.Path != "/" {
+			http.NotFound(w, req)
+			return
+		}
+		fmt.Fprintf(w, "Welcome to the home page!")
+	})
 }
 
 type FileListModel struct{
@@ -33,11 +48,14 @@ type FileListModel struct{
 
 func FileList(w http.ResponseWriter, req *http.Request){
 	var data FileListModel
-	data.Path="/root"
+	re:=regexp.MustCompile(`/filelist/`)
+	data.Path=re.ReplaceAllString(req.URL.Path,"")
+	path:=filepath.Join(config.FileLocation,data.Path)
 
-	files, err := ioutil.ReadDir(config.FileLocation)
+	files, err := ioutil.ReadDir(path)
 	if err != nil {
-		log.Fatal(err)
+		http.NotFound(w,req)
+		return
 	}
 	data.Files=files
 
@@ -47,4 +65,8 @@ func FileList(w http.ResponseWriter, req *http.Request){
 	}
 
 	tmpl.Execute(w,data)
+}
+
+func Download(w http.ResponseWriter, req *http.Request){
+	fmt.Fprint(w,"maintaining...")
 }
