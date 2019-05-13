@@ -14,6 +14,8 @@ func ReadConfig() (Config) {
 	defer file.Close()
 	dec := json.NewDecoder(file)
 	var v  map[string]interface{}
+	var c  Config
 	dec.Decode(&v)
+	dec.Decode(&c)
 	return Config{FileLocation:v["FileLocation"].(string), Host:v["Host"].(string)}
 }

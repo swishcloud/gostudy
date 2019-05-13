@@ -13,6 +13,8 @@ import (
 	"regexp"
 )
 
+const SessionName  ="session"
+
 func main() {
 	addr:= flag.String("addr", config.Host, "http service address")
 	err := http.ListenAndServe(*addr, nil)
@@ -31,8 +33,10 @@ func init()  {
 func BindHandlers(){
 	mux:=http.NewServeMux()
 	http.Handle("/",mux)
+	http.Handle("/static/", http.StripPrefix("/static/", http.FileServer(http.Dir("./static"))))
 	mux.Handle("/filelist/", http.HandlerFunc(FileList))
 	mux.Handle("/download", http.HandlerFunc(Download))
+	mux.Handle("/login", http.HandlerFunc(login))
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		// The "/" pattern matches everything, so we need to check
 		// that we're at the root here.
@@ -50,6 +54,9 @@ type FileListModel struct{
 }
 
 func FileList(w http.ResponseWriter, req *http.Request){
+	cookie:=http.Cookie{Name:SessionName,Value:aesencryption.Encrypt("hello world!"),Path:"/"}
+	http.SetCookie(w,&cookie)
+
 	var data FileListModel
 	re:=regexp.MustCompile(`/filelist/`)
 	data.Path=re.ReplaceAllString(req.URL.Path,"")
@@ -70,8 +77,11 @@ func FileList(w http.ResponseWriter, req *http.Request){
 }
 
 func Download(w http.ResponseWriter, req *http.Request){
-	cipher:=aesencryption.Encrypt("hello world!")
-	plain:=aesencryption.Decrypt(cipher)
-	fmt.Fprintln(w,cipher)
+	cookie,err:=req.Cookie(SessionName)
+	if err!=nil{
+		w.WriteHeader(http.StatusUnauthorized)
+		return
+	}
+	plain:=aesencryption.Decrypt(cookie.Value)
 	fmt.Fprintln(w,plain)
 }
