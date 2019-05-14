@@ -8,6 +8,7 @@ import (
 
 type LoginModel struct{
 	Account string
+	Error string
 }
 
 func login(w http.ResponseWriter, req *http.Request) {
@@ -17,7 +18,7 @@ func login(w http.ResponseWriter, req *http.Request) {
 	}else{
 		account:=req.PostForm.Get("account")
 		//password:=req.PostForm.Get("password")
-		login_get(w,req,LoginModel{Account:account})
+		login_get(w,req,LoginModel{Account:account,Error:"账号或密码有误."})
 	}
 }
 func login_get(w http.ResponseWriter, req *http.Request,data LoginModel) {

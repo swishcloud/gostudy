@@ -5,6 +5,4 @@ function blockUi() {
 function unBlockUi() {
     $("#mask").addClass("d-none")
 }
-
-$.ajaxStart = blockUi
-$.ajaxComplete = unBlockUi
+$(document).ajaxStart(blockUi).ajaxComplete(unBlockUi)
