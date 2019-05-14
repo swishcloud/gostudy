@@ -6,25 +6,22 @@ import (
 	"net/http"
 )
 
-type LoginModel struct{
-	Account string
-	Error string
-}
 
 func login(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	if req.Method==http.MethodGet{
-		login_get(w,req,LoginModel{})
-	}else{
-		account:=req.PostForm.Get("account")
-		//password:=req.PostForm.Get("password")
-		login_get(w,req,LoginModel{Account:account,Error:"账号或密码有误."})
-	}
-}
-func login_get(w http.ResponseWriter, req *http.Request,data LoginModel) {
 		tmpl, err := template.ParseFiles("templates/login.html")
 		if err != nil {
 			log.Fatal(err)
 		}
-		tmpl.Execute(w, data)
+		tmpl.Execute(w, nil)
+	}else{
+		account:=req.PostForm.Get("account")
+		password:=req.PostForm.Get("password")
+		if account=="123" && password=="456"{
+			HandlerResult{}.Write(w)
+		}else {
+			HandlerResult{Error:"账号或密码有误",Data:"test"}.Write(w)
+		}
+	}
 }

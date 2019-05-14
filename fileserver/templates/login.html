@@ -25,15 +25,16 @@
 </head>
 <body>
 <div class="container">
-    <p class="text-danger">{{.Error}}</p>
     <form action="/login" method="post" class="col-lg-4" id="loginForm">
+        <div id="error">
+        </div>
         <div class="form-group">
             <label for="account">账号</label>
             <input type="text" class="form-control" id="account" name="account" placeholder="账号" required value="{{.Account}}">
         </div>
         <div class="form-group">
             <label for="password">密码</label>
-            <input type="password" class="form-control" id="password" name="password" placeholder="密码" required>
+            <input type="password" class="form-control" id="password" name="password" placeholder="密码" required autocomplete="">
         </div>
         <button id="login" type="submit" class="btn btn-primary">登录</button>
     </form>
@@ -51,9 +52,17 @@
 <script src="/static/jquery-validation-1.19.0/dist/jquery.validate.js"></script>
 <script src="static/js/jquery.form.min.js"></script>
 <script>
-    $("form").validate({
-        submitHandler:function (form) {
-            $(form).ajaxSubmit()
+    new app.ajaxSubmit($("form"),{
+        before:function () {
+            app.closeError($('#error'))
+        },
+        success:function (res) {
+            if(res.error){
+                app.showError($('#error'),res.error)
+            }
+            else{
+                window.location.href="/"
+            }
         }
     })
 </script>
