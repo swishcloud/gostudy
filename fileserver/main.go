@@ -4,13 +4,9 @@ import (
 	"flag"
 	"fmt"
 	"github.com/github-123456/gostudy/aesencryption"
-	"html/template"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"os"
-	"path/filepath"
-	"regexp"
 )
 
 const SessionName  ="session"
@@ -54,28 +50,6 @@ type FileListModel struct{
 	Files []os.FileInfo
 }
 
-func FileList(w http.ResponseWriter, req *http.Request){
-	cookie:=http.Cookie{Name:SessionName,Value:aesencryption.Encrypt("hello world!"),Path:"/"}
-	http.SetCookie(w,&cookie)
-
-	var data FileListModel
-	re:=regexp.MustCompile(`/filelist/`)
-	data.Path=re.ReplaceAllString(req.URL.Path,"")
-	path:=filepath.Join(config.FileLocation,data.Path)
-
-	files, err := ioutil.ReadDir(path)
-	if err != nil {
-		http.NotFound(w,req)
-		return
-	}
-	data.Files=files
-
-	tmpl,err:=template.ParseFiles("templates/filelist.html")
-	if err != nil {
-		log.Fatal(err)
-	}
-	tmpl.Execute(w,data)
-}
 
 func Download(w http.ResponseWriter, req *http.Request){
 	cookie,err:=req.Cookie(SessionName)
