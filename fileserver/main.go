@@ -37,6 +37,7 @@ func BindHandlers(){
 	mux.Handle("/filelist/", http.HandlerFunc(FileList))
 	mux.Handle("/download", http.HandlerFunc(Download))
 	mux.Handle("/login", http.HandlerFunc(login))
+	mux.Handle("/index", http.HandlerFunc(index))
 	mux.HandleFunc("/", func(w http.ResponseWriter, req *http.Request) {
 		// The "/" pattern matches everything, so we need to check
 		// that we're at the root here.

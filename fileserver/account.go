@@ -1,8 +1,8 @@
 package main
 
 import (
+	"fmt"
 	"html/template"
-	"log"
 	"net/http"
 )
 
@@ -10,11 +10,14 @@ import (
 func login(w http.ResponseWriter, req *http.Request) {
 	req.ParseForm()
 	if req.Method==http.MethodGet{
-		tmpl, err := template.ParseFiles("templates/login.html")
+		tmpl, err := template.ParseFiles("templates/layout.html","templates/login.html")
 		if err != nil {
-			log.Fatal(err)
+			panic(err)
 		}
-		tmpl.Execute(w, nil)
+		err=tmpl.Execute(w, nil)
+		if err != nil {
+			fmt.Fprintf(w,err.Error())
+		}
 	}else{
 		account:=req.PostForm.Get("account")
 		password:=req.PostForm.Get("password")
