@@ -6,11 +6,9 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/hex"
-	"github.com/github-123456/gostudy/keygenerator"
 	"github.com/pkg/errors"
 	"io"
 )
-var key=[]byte(keygenerator.NewKey(16))
 
 func Pad(src []byte) []byte {
 	padding := aes.BlockSize - len(src)%aes.BlockSize
@@ -29,7 +27,7 @@ func Unpad(src []byte) ([]byte, error) {
 	return src[:(length - unpadding)], nil
 }
 
-func Encrypt(str string )(string)  {
+func Encrypt(key[]byte,str string )(string)  {
 	plaintext :=Pad([]byte(str))
 
 
@@ -47,7 +45,7 @@ func Encrypt(str string )(string)  {
 	return hex.EncodeToString(ciphertext)
 }
 
-func Decrypt(str string) string{
+func Decrypt(key[]byte,str string)(string,error){
 	ciphertext, _ := hex.DecodeString(str)
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -59,7 +57,7 @@ func Decrypt(str string) string{
 	mode.CryptBlocks(ciphertext, ciphertext)
 	ct,err:=Unpad(ciphertext)
 	if err!=nil{
-		panic(err)
+		return ``,err
 	}
-	return string(ct)
+	return string(ct),nil
 }
