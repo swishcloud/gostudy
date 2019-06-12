@@ -9,7 +9,6 @@ import (
 	"encoding/hex"
 	"github.com/pkg/errors"
 	"io"
-	"fmt"
 )
 
 func Pad(src []byte) []byte {
@@ -69,6 +68,5 @@ func genKey(key string)[]byte  {
 	h:=crypto.SHA256.New()
 	h.Write(b)
 	r:= h.Sum(nil)
-	fmt.Printf("%x\n",r)
 	return r
 }
