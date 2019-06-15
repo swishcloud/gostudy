@@ -2,7 +2,6 @@ package aesencryption
 
 import (
 	"bytes"
-	"crypto"
 	"crypto/aes"
 	"crypto/cipher"
 	"crypto/rand"
@@ -28,11 +27,11 @@ func Unpad(src []byte) ([]byte, error) {
 	return src[:(length - unpadding)], nil
 }
 
-func Encrypt(key string,str string )(string)  {
+func Encrypt(key []byte,str string )(string)  {
 	plaintext :=Pad([]byte(str))
 
 
-	block, err := aes.NewCipher(genKey(key))
+	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
 	}
@@ -46,9 +45,9 @@ func Encrypt(key string,str string )(string)  {
 	return hex.EncodeToString(ciphertext)
 }
 
-func Decrypt(key string,str string)(string,error){
+func Decrypt(key []byte,str string)(string,error){
 	ciphertext, _ := hex.DecodeString(str)
-	block, err := aes.NewCipher(genKey(key))
+	block, err := aes.NewCipher(key)
 	if err != nil {
 		panic(err)
 	}
@@ -61,12 +60,4 @@ func Decrypt(key string,str string)(string,error){
 		return ``,err
 	}
 	return string(ct),nil
-}
-
-func genKey(key string)[]byte  {
-	b := []byte(key)
-	h:=crypto.SHA256.New()
-	h.Write(b)
-	r:= h.Sum(nil)
-	return r
 }
