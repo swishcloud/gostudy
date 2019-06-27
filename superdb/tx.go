@@ -2,7 +2,7 @@ package superdb
 
 import "database/sql"
 
-func ExecuteTransaction(db *sql.DB, tasks ...DbTask) {
+func ExecuteTransaction(db *sql.DB, tasks ...DbTask)  map[interface{}]interface{} {
 	var tx *sql.Tx
 	tx, err := db.Begin()
 	if err != nil {
@@ -14,16 +14,28 @@ func ExecuteTransaction(db *sql.DB, tasks ...DbTask) {
 			panic(err)
 		}
 	}()
+	t:=&Tx{tx, map[interface{}]interface{}{}}
 	for _, v := range tasks {
-		v(&Tx{tx})
+		v(t)
 	}
 	tx.Commit()
+	return t.Data
 }
 
 type DbTask func(*Tx)
 
 type Tx struct {
 	*sql.Tx
+	Data map[interface{}]interface{}
+}
+
+func (tx Tx) SetValue(key interface{}, value interface{}) {
+	for k, _ := range tx.Data {
+		if k == key {
+			panic("the key has set value before")
+		}
+	}
+	tx.Data[key] = value
 }
 
 func (tx Tx) MustExec(query string, args ...interface{}) sql.Result {
