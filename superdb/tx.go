@@ -59,6 +59,12 @@ func (tx Tx) MustQueryRow(query string, args ...interface{}) *Row {
 	return &Row{*row}
 }
 
+func (tx Tx) Any(query string, args ...interface{}) bool {
+	row := tx.QueryRow(query, args...)
+	err:=row.Scan()
+	return err!=sql.ErrNoRows
+}
+
 type Row struct {
 	sql.Row
 }
