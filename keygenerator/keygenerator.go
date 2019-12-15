@@ -2,27 +2,31 @@ package keygenerator
 
 import (
 	"crypto/rand"
-	"fmt"
 	"regexp"
 )
 
-func NewKey(length int)(string) {
-	patterns := []string{".*[A-Z]", ".*[a-z]", ".*[^A-Za-z\\d]", ".*\\d"}
+func NewKey(length int, requireUpperCaseLetters, requireLowerCaseLetters, requireSpecialSymbols bool) string {
+	patterns := map[string]bool{}
+	patterns[".*[\\d]"] = true
+	patterns[".*[A-Z]"] = requireUpperCaseLetters
+	patterns[".*[a-z]"] = requireLowerCaseLetters
+	patterns[".*[^A-Za-z\\d]"] = requireSpecialSymbols
 	for {
 		var pwdbytes []byte
 		generatePwd(&pwdbytes, length)
 		pwdstr := string(pwdbytes)
 		matched := true
-		for _, value := range patterns {
-			if m, err := regexp.MatchString(value, pwdstr); !m {
-				if err != nil {
-					println(err)
-				}
+		for pattern, required := range patterns {
+			m, err := regexp.MatchString(pattern, pwdstr)
+			if err != nil {
+				panic(err)
+			}
+			if m != required {
 				matched = false
 				break
 			}
 		}
-		if (matched) {
+		if matched {
 			return pwdstr
 		}
 	}
@@ -33,11 +37,10 @@ func generatePwd(pwdbytes *[]byte, length int) {
 	b := make([]byte, c)
 	_, err := rand.Read(b)
 	if err != nil {
-		fmt.Println("error:", err)
-		return
+		panic(err)
 	}
 	for _, value := range b {
-		if (value >= 33 && value <= 126) {
+		if value >= 33 && value <= 126 {
 			if len(*pwdbytes) != length {
 				*pwdbytes = append(*pwdbytes, value)
 			} else {

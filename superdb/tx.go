@@ -2,9 +2,13 @@ package superdb
 
 import "database/sql"
 
-func ExecuteTransaction(db *sql.DB, tasks ...DbTask)  map[interface{}]interface{} {
+type SuperDB struct {
+	*sql.DB
+}
+
+func (s SuperDB) ExecTran(tasks ...DbTask) map[interface{}]interface{} {
 	var tx *sql.Tx
-	tx, err := db.Begin()
+	tx, err := s.DB.Begin()
 	if err != nil {
 		panic(err)
 	}
@@ -14,7 +18,7 @@ func ExecuteTransaction(db *sql.DB, tasks ...DbTask)  map[interface{}]interface{
 			panic(err)
 		}
 	}()
-	t:=&Tx{tx, map[interface{}]interface{}{}}
+	t := &Tx{tx, map[interface{}]interface{}{}}
 	for _, v := range tasks {
 		v(t)
 	}
@@ -51,7 +55,7 @@ func (tx Tx) MustQuery(query string, args ...interface{}) *Rows {
 	if err != nil {
 		panic(err)
 	}
-	return &Rows{*rows}
+	return &Rows{rows}
 }
 
 func (tx Tx) MustQueryRow(query string, args ...interface{}) *Row {
@@ -61,8 +65,8 @@ func (tx Tx) MustQueryRow(query string, args ...interface{}) *Row {
 
 func (tx Tx) Any(query string, args ...interface{}) bool {
 	row := tx.QueryRow(query, args...)
-	err:=row.Scan()
-	return err!=sql.ErrNoRows
+	err := row.Scan()
+	return err != sql.ErrNoRows
 }
 
 type Row struct {
@@ -77,10 +81,10 @@ func (row Row) MustScan(args ...interface{}) {
 }
 
 type Rows struct {
-	sql.Rows
+	*sql.Rows
 }
 
-func (rows Rows) MustScan(args ...interface{}) {
+func (rows *Rows) MustScan(args ...interface{}) {
 	err := rows.Scan(args...)
 	if err != nil {
 		panic(err)
