@@ -38,5 +38,5 @@ func init() {
 	generateKeyCmd.Flags().Bool("ed", false, "indicate whether exclude upper case letter,the default is false")
 	generateKeyCmd.Flags().Bool("eu", false, "indicate whether exclude upper case letter,the default is false")
 	generateKeyCmd.Flags().Bool("el", false, "indicate whether exclude lower case letter,the default is false")
-	generateKeyCmd.Flags().Bool("es", true, "indicate whether exclude special symbol,the default is true")
+	generateKeyCmd.Flags().Bool("es", false, "indicate whether exclude special symbol,the default is true")
 }
