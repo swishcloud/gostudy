@@ -2,7 +2,6 @@ package main
 
 import (
 	"fmt"
-	"strconv"
 
 	"github.com/swishcloud/gostudy/keygenerator"
 
@@ -14,10 +13,8 @@ var generateKeyCmd = &cobra.Command{
 	Short: "randomly generate string key",
 	Long:  "randomly generate string key,the length of out key defaults to 8",
 	Run: func(cmd *cobra.Command, args []string) {
-		len, err := strconv.Atoi(args[0])
-		if err != nil {
-			len = 8
-		}
+		len, err := cmd.Flags().GetInt("len")
+		Error(err)
 		excludeDigits, err := cmd.Flags().GetBool("ed")
 		Error(err)
 		excludeUpperCase, err := cmd.Flags().GetBool("eu")
@@ -26,7 +23,7 @@ var generateKeyCmd = &cobra.Command{
 		Error(err)
 		excludeSpecialSymbol, err := cmd.Flags().GetBool("es")
 		Error(err)
-		key, err := keygenerator.NewKey(int(len), excludeDigits, excludeUpperCase, excludeLowerCase, excludeSpecialSymbol)
+		key, err := keygenerator.NewKey(len, excludeDigits, excludeUpperCase, excludeLowerCase, excludeSpecialSymbol)
 		if err != nil {
 			fmt.Println(err.Error())
 		} else {
@@ -37,6 +34,7 @@ var generateKeyCmd = &cobra.Command{
 
 func init() {
 	generateCmd.AddCommand(generateKeyCmd)
+	generateKeyCmd.Flags().IntP("len", "l", 8, "indicate the lenth of out key,the default is 8")
 	generateKeyCmd.Flags().Bool("ed", false, "indicate whether exclude upper case letter,the default is false")
 	generateKeyCmd.Flags().Bool("eu", false, "indicate whether exclude upper case letter,the default is false")
 	generateKeyCmd.Flags().Bool("el", false, "indicate whether exclude lower case letter,the default is false")
