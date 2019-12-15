@@ -1,32 +1,19 @@
 package main
 
 import (
-	"fmt"
-	"github.com/github-123456/gostudy/keygenerator"
-	"os"
-	"strconv"
+	"log"
 )
 
 func main() {
-	fmt.Println(len(os.Args), os.Args)
-	if len(os.Args) < 2 {
-		return
-	}
-	commandType := os.Args[1]
-	switch commandType {
-	case "generatepwd":
-		length := 16
-		if len(os.Args) >= 3 {
-			if l, err := strconv.Atoi(os.Args[2]); err == nil {
-				length = l
-			} else {
-				fmt.Print("invalid argument:", os.Args[2])
-			}
+	Execute()
+}
 
-		}
-		println(keygenerator.NewKey(length))
-	default:
-		println("invalid command:", commandType)
-	}
+func init() {
+	log.SetFlags(log.Ldate | log.Ltime | log.Lshortfile)
+}
 
+func Error(err error) {
+	if err != nil {
+		log.Fatal(err.Error())
+	}
 }
