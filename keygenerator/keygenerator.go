@@ -2,23 +2,27 @@ package keygenerator
 
 import (
 	"crypto/rand"
+	"errors"
 	"regexp"
 )
 
-func NewKey(length int, requireUpperCaseLetters, requireLowerCaseLetters, requireSpecialSymbols bool) string {
+func NewKey(length int, exculdeDigits, excludeUpperCaseLetters, excludeLowerCaseLetters, excludeSpecialSymbols bool) (string, error) {
+	if exculdeDigits == true && excludeUpperCaseLetters == true && excludeLowerCaseLetters == true && excludeSpecialSymbols == true {
+		return "", errors.New("can not exclude all type")
+	}
 	m := func(str string) bool {
 		patterns := map[string]bool{}
-		patterns[".*[\\d]"] = true
-		patterns[".*[A-Z]"] = requireUpperCaseLetters
-		patterns[".*[a-z]"] = requireLowerCaseLetters
-		patterns[".*[^A-Za-z\\d]"] = requireSpecialSymbols
+		patterns[".*[\\d]"] = exculdeDigits
+		patterns[".*[A-Z]"] = excludeUpperCaseLetters
+		patterns[".*[a-z]"] = excludeLowerCaseLetters
+		patterns[".*[^A-Za-z\\d]"] = excludeSpecialSymbols
 
-		for pattern, required := range patterns {
+		for pattern, exclude := range patterns {
 			m, err := regexp.MatchString(pattern, str)
 			if err != nil {
 				panic(err)
 			}
-			if m != required {
+			if exclude && m {
 				return false
 			}
 		}
@@ -28,7 +32,7 @@ func NewKey(length int, requireUpperCaseLetters, requireLowerCaseLetters, requir
 	var b []byte
 	generatePwd(&b, length, m)
 	key := string(b)
-	return key
+	return key, nil
 }
 
 func generatePwd(pwdbytes *[]byte, length int, m func(str string) bool) {
@@ -38,13 +42,11 @@ func generatePwd(pwdbytes *[]byte, length int, m func(str string) bool) {
 	if err != nil {
 		panic(err)
 	}
-	for _, value := range b {
-		if value >= 33 && value <= 126 {
-			if len(*pwdbytes) == length {
-				return
-			} else if m(string(value)) {
-				*pwdbytes = append(*pwdbytes, value)
-			}
+	for _, v := range b {
+		if len(*pwdbytes) == length {
+			return
+		} else if v >= 33 && v <= 127 && m(string(v)) {
+			*pwdbytes = append(*pwdbytes, v)
 		}
 	}
 	generatePwd(pwdbytes, length, m)

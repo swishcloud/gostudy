@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"strconv"
 
 	"github.com/swishcloud/gostudy/keygenerator"
 
@@ -9,25 +10,35 @@ import (
 )
 
 var generateKeyCmd = &cobra.Command{
-	Use: "key ",
+	Use:   "key ",
+	Short: "randomly generate string key",
+	Long:  "randomly generate string key,the length of out key defaults to 8",
 	Run: func(cmd *cobra.Command, args []string) {
-		len, err := cmd.Flags().GetInt32("len")
+		len, err := strconv.Atoi(args[0])
+		if err != nil {
+			len = 8
+		}
+		excludeDigits, err := cmd.Flags().GetBool("ed")
 		Error(err)
-		requireUpperCase, err := cmd.Flags().GetBool("ru")
+		excludeUpperCase, err := cmd.Flags().GetBool("eu")
 		Error(err)
-		requireLowerCase, err := cmd.Flags().GetBool("rl")
+		excludeLowerCase, err := cmd.Flags().GetBool("el")
 		Error(err)
-		requireSpecialSymbol, err := cmd.Flags().GetBool("rs")
+		excludeSpecialSymbol, err := cmd.Flags().GetBool("es")
 		Error(err)
-		key := keygenerator.NewKey(int(len), requireUpperCase, requireLowerCase, requireSpecialSymbol)
-		fmt.Println(key)
+		key, err := keygenerator.NewKey(int(len), excludeDigits, excludeUpperCase, excludeLowerCase, excludeSpecialSymbol)
+		if err != nil {
+			fmt.Println(err.Error())
+		} else {
+			fmt.Println(key)
+		}
 	},
 }
 
 func init() {
 	generateCmd.AddCommand(generateKeyCmd)
-	generateKeyCmd.Flags().Int32P("len", "l", 8, "indicate lenth of out key,the default is 8")
-	generateKeyCmd.Flags().Bool("ru", false, "indicate whether upper case letter is required,the default is false")
-	generateKeyCmd.Flags().Bool("rl", false, "indicate whether lower case letter is required,the default is false")
-	generateKeyCmd.Flags().Bool("rs", false, "indicate whether special symbol is required,the default is false")
+	generateKeyCmd.Flags().Bool("ed", false, "indicate whether exclude upper case letter,the default is false")
+	generateKeyCmd.Flags().Bool("eu", false, "indicate whether exclude upper case letter,the default is false")
+	generateKeyCmd.Flags().Bool("el", false, "indicate whether exclude lower case letter,the default is false")
+	generateKeyCmd.Flags().Bool("es", true, "indicate whether exclude special symbol,the default is true")
 }
