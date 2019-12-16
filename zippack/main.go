@@ -2,12 +2,12 @@ package main
 
 import (
 	"archive/zip"
-	"bytes"
 	"flag"
 	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 func writeArchive(w *zip.Writer, archiveFolder string, directory string) {
@@ -43,42 +43,45 @@ func handleErr(err error) {
 		os.Exit(1)
 	}
 }
-
 func main() {
-	compress_f := `C:\Users\allen\Desktop\compress-folder`
+	compress_f := ""
 	archive_file_path := ""
 
-	flag.StringVar(&compress_f, "f", "", "the folder/file to compress")
+	flag.StringVar(&compress_f, "f", "", "the folder/file paths to compress,separated by semicolons")
 	flag.StringVar(&archive_file_path, "o", "", "the path of archive output file")
 
 	flag.Parse()
 
 	if compress_f == "" {
-		fmt.Println("please specify folder/file path to compress using -f option")
+		fmt.Println("please specify folder/file paths to compress which separated by semicolons using -f option")
 		os.Exit(1)
 	}
 
-	stat, err := os.Stat(compress_f)
-	handleErr(err)
 	if archive_file_path == "" {
-		archive_file_path = stat.Name() + ".zip"
+		fmt.Println("please specify archive file output path using -o option")
+		os.Exit(1)
 	}
-
-	buf := new(bytes.Buffer)
-	w := zip.NewWriter(buf)
 
 	f, err := os.Create(archive_file_path)
 	handleErr(err)
 
-	if !stat.IsDir() {
-		writeArchiveFile(w, "", compress_f)
-	} else {
-		writeArchive(w, "", compress_f)
+	w := zip.NewWriter(f)
+
+	paths := strings.Split(compress_f, ";")
+	for i := 0; i < len(paths); i++ {
+		stat, err := os.Stat(paths[i])
+		handleErr(err)
+		if stat.IsDir() {
+			writeArchive(w, "", paths[i])
+		} else {
+			writeArchiveFile(w, "", paths[i])
+		}
 	}
+
 	w.Close()
-	n, err := f.Write(buf.Bytes())
-	handleErr(err)
 	err = f.Close()
 	handleErr(err)
-	fmt.Println("saved archive successfully with file size", n, "bytes at", archive_file_path)
+	fi, err := os.Stat(archive_file_path)
+	handleErr(err)
+	fmt.Println("saved archive successfully with file size", fi.Size(), "bytes at", archive_file_path)
 }
