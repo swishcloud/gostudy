@@ -1,47 +1,18 @@
-package superdb
+package tx
 
 import "database/sql"
 
-type SuperDB struct {
-	*sql.DB
-}
-
-func (s SuperDB) ExecTran(tasks ...DbTask) map[interface{}]interface{} {
-	var tx *sql.Tx
-	tx, err := s.DB.Begin()
-	if err != nil {
-		panic(err)
-	}
-	defer func() {
-		if err := recover(); err != nil {
-			tx.Rollback()
-			panic(err)
-		}
-	}()
-	t := &Tx{tx, map[interface{}]interface{}{}}
-	for _, v := range tasks {
-		v(t)
-	}
-	tx.Commit()
-	return t.Data
-}
-
-type DbTask func(*Tx)
-
 type Tx struct {
 	*sql.Tx
-	Data map[interface{}]interface{}
 }
 
-func (tx Tx) SetValue(key interface{}, value interface{}) {
-	for k, _ := range tx.Data {
-		if k == key {
-			panic("the key has set value before")
-		}
+func NewTx(db *sql.DB) (*Tx, error) {
+	tx, err := db.Begin()
+	if err != nil {
+		return nil, err
 	}
-	tx.Data[key] = value
+	return &Tx{tx}, nil
 }
-
 func (tx Tx) MustExec(query string, args ...interface{}) sql.Result {
 	res, err := tx.Exec(query, args...)
 	if err != nil {
