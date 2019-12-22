@@ -16,8 +16,8 @@ type EmailSender struct {
 }
 
 func (sender EmailSender) SendEmail(toAddress string, subject string, body string) {
-	from := mail.Address{sender.Name, sender.UserName}
-	to := mail.Address{"", toAddress}
+	from := mail.Address{Name: sender.Name, Address: sender.UserName}
+	to := mail.Address{Name: "", Address: toAddress}
 
 	// Setup headers
 	headers := make(map[string]string)
