@@ -55,37 +55,37 @@ func SendRestApiRequest(method string, access_token string, urlPath string, body
 }
 
 type RestApiClient struct {
-	request *http.Request
 	client  *http.Client
+	request *http.Request
 }
 
 func NewRestApiClient(method string, urlPath string, body []byte, skip_tls_verify bool) *RestApiClient {
-	headers := map[string][]string{
-		"Content-Type": []string{"application/x-www-form-urlencoded"},
-		"Accept":       []string{"application/json"},
-	}
-
 	rac := new(RestApiClient)
-	if req, err := http.NewRequest(method, urlPath, bytes.NewBuffer(body)); err == nil {
-		req.Header = headers
-		rac.request = req
-	} else {
-		panic(err)
-	}
-
 	rac.client = http.DefaultClient
-
 	if skip_tls_verify {
 		tlsConfig := tls.Config{}
 		tlsConfig.InsecureSkipVerify = skip_tls_verify
 		rac.client.Transport = &http.Transport{TLSClientConfig: &tlsConfig}
 	}
-
+	if req, err := http.NewRequest(method, urlPath, bytes.NewBuffer(body)); err == nil {
+		req.Header = map[string][]string{
+			"Content-Type": []string{"application/x-www-form-urlencoded"},
+			"Accept":       []string{"application/json"},
+		}
+		rac.request = req
+	} else {
+		panic(err)
+	}
 	return rac
 }
 func (rac *RestApiClient) UseToken(conf *oauth2.Config, token *oauth2.Token) *RestApiClient {
 	c := conf.Client(oauth2.NoContext, token)
 	rac.client = c
+	return rac
+}
+
+func (rac *RestApiClient) SetHeader(key, value string) *RestApiClient {
+	rac.request.Header.Set(key, value)
 	return rac
 }
 
