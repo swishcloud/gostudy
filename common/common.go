@@ -5,6 +5,8 @@ import (
 	"crypto/md5"
 	"crypto/tls"
 	"encoding/hex"
+	"encoding/json"
+	"io"
 	"io/ioutil"
 	"net/http"
 
@@ -91,4 +93,13 @@ func (rac *RestApiClient) SetHeader(key, value string) *RestApiClient {
 
 func (rac *RestApiClient) Do() (*http.Response, error) {
 	return rac.client.Do(rac.request)
+}
+func ReadAsMap(r io.Reader) map[string]interface{} {
+	b, err := ioutil.ReadAll(r)
+	if err != nil {
+		panic(err)
+	}
+	m := map[string]interface{}{}
+	json.Unmarshal(b, &m)
+	return m
 }
