@@ -6,6 +6,7 @@ import (
 	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -80,6 +81,10 @@ func NewRestApiClient(method string, urlPath string, body []byte, skip_tls_verif
 	}
 	return rac
 }
+func (rac *RestApiClient) SetAuthHeader(token *oauth2.Token) *RestApiClient {
+	token.SetAuthHeader(rac.request)
+	return rac
+}
 func (rac *RestApiClient) UseToken(conf *oauth2.Config, token *oauth2.Token) *RestApiClient {
 	c := conf.Client(oauth2.NoContext, token)
 	rac.client = c
@@ -93,6 +98,17 @@ func (rac *RestApiClient) SetHeader(key, value string) *RestApiClient {
 
 func (rac *RestApiClient) Do() (*http.Response, error) {
 	return rac.client.Do(rac.request)
+}
+
+func (rac *RestApiClient) DoExpect200Status() (*http.Response, error) {
+	resp, err := rac.client.Do(rac.request)
+	if err != nil {
+		return resp, err
+	}
+	if resp.StatusCode != 200 {
+		return resp, errors.New("unexpected status code:" + string(resp.StatusCode))
+	}
+	return resp, nil
 }
 func ReadAsMap(r io.Reader) map[string]interface{} {
 	b, err := ioutil.ReadAll(r)
