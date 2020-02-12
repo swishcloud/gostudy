@@ -7,6 +7,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
@@ -116,6 +117,19 @@ func ReadAsMap(r io.Reader) map[string]interface{} {
 		panic(err)
 	}
 	m := map[string]interface{}{}
-	json.Unmarshal(b, &m)
+	err = json.Unmarshal(b, &m)
+	if err != nil {
+		panic(err)
+	}
 	return m
+}
+
+func FormatByteSize(n int64) (string, string) {
+	unit := "kb"
+	size := float64(n) / 1024
+	if n >= 1024 {
+		unit = "mb"
+		size = size / 1024
+	}
+	return fmt.Sprintf("%.2f", size), unit
 }
