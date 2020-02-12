@@ -11,6 +11,8 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
+	"regexp"
+	"strings"
 
 	"golang.org/x/oauth2"
 )
@@ -131,5 +133,12 @@ func FormatByteSize(n int64) (string, string) {
 		unit = "mb"
 		size = size / 1024
 	}
-	return fmt.Sprintf("%.2f", size), unit
+	s := fmt.Sprintf("%.2f", size)
+	regex, err := regexp.Compile("0+$")
+	if err != nil {
+		panic(err)
+	}
+	s = regex.ReplaceAllString(s, "")
+	s = strings.TrimSuffix(s, ".")
+	return s, unit
 }
