@@ -127,7 +127,7 @@ func ReadAsMap(r io.Reader) map[string]interface{} {
 func FormatByteSize(n int64) (string, string) {
 	unit := "kb"
 	size := float64(n) / 1024
-	if n >= 1024 {
+	if size >= 1024 {
 		unit = "mb"
 		size = size / 1024
 	}
