@@ -2,15 +2,16 @@ package common
 
 import (
 	"bytes"
+	"context"
 	"crypto/md5"
 	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"regexp"
 	"strings"
 
@@ -34,96 +35,71 @@ func Md5Hash(plain string) string {
 	b := md5.Sum(sb)
 	return hex.EncodeToString(b[:])
 }
-func SendRestApiRequest(method string, access_token string, urlPath string, body []byte, skip_tls_verify bool) []byte {
-	headers := map[string][]string{
-		"Content-Type":  []string{"application/x-www-form-urlencoded"},
-		"Accept":        []string{"application/json"},
-		"Authorization": []string{"Bearer " + access_token},
-	}
-	req, err := http.NewRequest(method, urlPath, bytes.NewBuffer(body))
-	if err != nil {
-		panic(err)
-	}
-	req.Header = headers
-
-	tlsConfig := tls.Config{}
-	tlsConfig.InsecureSkipVerify = skip_tls_verify
-	client := &http.Client{Transport: &http.Transport{TLSClientConfig: &tlsConfig}}
-	resp, err := client.Do(req)
-	if err != nil {
-		panic(err)
-	}
-	b, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		panic(err)
-	}
-	return b
-}
 
 type RestApiClient struct {
-	client  *http.Client
-	request *http.Request
+	client *http.Client
 }
 
-func NewRestApiClient(method string, urlPath string, body []byte, skip_tls_verify bool) *RestApiClient {
+func NewRestApiClient(skip_tls_verify bool) *RestApiClient {
 	rac := new(RestApiClient)
-	rac.client = http.DefaultClient
-	if skip_tls_verify {
-		tlsConfig := tls.Config{}
-		tlsConfig.InsecureSkipVerify = skip_tls_verify
-		rac.client.Transport = &http.Transport{TLSClientConfig: &tlsConfig}
+	rac.client = new(http.Client)
+	tlsConfig := tls.Config{}
+	tlsConfig.InsecureSkipVerify = skip_tls_verify
+	rac.client.Transport = &http.Transport{TLSClientConfig: &tlsConfig, DisableKeepAlives: true}
+	return rac
+}
+
+func (rac *RestApiClient) Do(rar *RestApiRequest) (*http.Response, error) {
+	if rar.token != nil {
+		ts := rar.conf.TokenSource(context.Background(), rar.token)
+		new_token, err := ts.Token()
+		if err != nil {
+			return nil, err
+		}
+		new_token.SetAuthHeader(rar.Request)
 	}
-	if req, err := http.NewRequest(method, urlPath, bytes.NewBuffer(body)); err == nil {
+	return rac.client.Do(rar.Request)
+}
+
+type RestApiRequest struct {
+	Request *http.Request
+	conf    *oauth2.Config
+	token   *oauth2.Token
+}
+
+func NewRestApiRequest(method string, urlPath string, body []byte) *RestApiRequest {
+	if req, err := http.NewRequest(method, urlPath, bytes.NewBuffer(body)); err != nil {
+		panic(err)
+	} else {
 		req.Header = map[string][]string{
 			"Content-Type": []string{"application/x-www-form-urlencoded"},
 			"Accept":       []string{"application/json"},
 		}
-		rac.request = req
-	} else {
-		panic(err)
+		rar := new(RestApiRequest)
+		rar.Request = req
+		return rar
 	}
-	return rac
 }
-func (rac *RestApiClient) SetAuthHeader(token *oauth2.Token) *RestApiClient {
-	token.SetAuthHeader(rac.request)
-	return rac
+func (rar *RestApiRequest) UseToken(conf *oauth2.Config, token *oauth2.Token) *RestApiRequest {
+	rar.conf = conf
+	rar.token = token
+	return rar
 }
-func (rac *RestApiClient) UseToken(conf *oauth2.Config, token *oauth2.Token) *RestApiClient {
-	c := conf.Client(oauth2.NoContext, token)
-	rac.client = c
-	return rac
+func (rar *RestApiRequest) SetAuthHeader(token *oauth2.Token) *RestApiRequest {
+	token.SetAuthHeader(rar.Request)
+	return rar
 }
-
-func (rac *RestApiClient) SetHeader(key, value string) *RestApiClient {
-	rac.request.Header.Set(key, value)
-	return rac
-}
-
-func (rac *RestApiClient) Do() (*http.Response, error) {
-	return rac.client.Do(rac.request)
-}
-
-func (rac *RestApiClient) DoExpect200Status() (*http.Response, error) {
-	resp, err := rac.client.Do(rac.request)
-	if err != nil {
-		return resp, err
-	}
-	if resp.StatusCode != 200 {
-		return resp, errors.New("unexpected status code:" + string(resp.StatusCode))
-	}
-	return resp, nil
-}
-func ReadAsMap(r io.Reader) map[string]interface{} {
+func ReadAsMap(r io.Reader) (map[string]interface{}, error) {
 	b, err := ioutil.ReadAll(r)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	m := map[string]interface{}{}
 	err = json.Unmarshal(b, &m)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
-	return m
+	return m, nil
 }
 
 func FormatByteSize(n int64) (string, string) {
@@ -141,4 +117,31 @@ func FormatByteSize(n int64) (string, string) {
 	s = regex.ReplaceAllString(s, "")
 	s = strings.TrimSuffix(s, ".")
 	return s, unit
+}
+
+type FileInfoWrapper struct {
+	Fi   os.FileInfo
+	Path string
+}
+
+func ReadAllFiles(path string, items *[]*FileInfoWrapper) error {
+	fi, err := os.Stat(path)
+	if err != nil {
+		return err
+	}
+	*items = append(*items, &FileInfoWrapper{Fi: fi, Path: path})
+	//check if it is directory
+	if fi.IsDir() {
+		if dir_items, err := ioutil.ReadDir(path); err != nil {
+			return err
+		} else {
+			for i := 0; i < len(dir_items); i++ {
+				err := ReadAllFiles(path+"/"+dir_items[i].Name(), items)
+				if err != nil {
+					return err
+				}
+			}
+		}
+	}
+	return nil
 }
