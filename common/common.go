@@ -145,3 +145,30 @@ func ReadAllFiles(path string, items *[]*FileInfoWrapper) error {
 	}
 	return nil
 }
+func CheckIfFileExits(path string) (bool, error) {
+	if _, err := os.Stat(path); err != nil {
+		if os.IsNotExist(err) {
+			return false, nil
+		} else {
+			return false, err
+		}
+	} else {
+		return true, nil
+	}
+
+}
+
+func FileMd5Hash(path string) (hash string, err error) {
+	f, err := os.Open(path)
+	if err != nil {
+		return "", err
+	}
+	defer f.Close()
+
+	h := md5.New()
+	if _, err := io.Copy(h, f); err != nil {
+		return "", err
+	}
+	hash = fmt.Sprintf("%x", h.Sum(nil))
+	return hash, nil
+}
