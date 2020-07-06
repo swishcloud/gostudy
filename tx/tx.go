@@ -2,6 +2,15 @@ package tx
 
 import "database/sql"
 
+func NewDB(driverName, dataSourceName string) (*sql.DB, error) {
+	d, err := sql.Open(driverName, dataSourceName)
+	if err != nil {
+		return nil, err
+	}
+	d.SetMaxIdleConns(0)
+	return d, nil
+}
+
 type Tx struct {
 	*sql.Tx
 }
