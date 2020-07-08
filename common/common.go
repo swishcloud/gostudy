@@ -14,10 +14,20 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"time"
 
 	"golang.org/x/oauth2"
 )
 
+func DelCookie(writer http.ResponseWriter, cookie_name string) {
+	expire := time.Now().Add(-7 * 24 * time.Hour)
+	newCookie := http.Cookie{
+		Name:    cookie_name,
+		Value:   "",
+		Expires: expire,
+	}
+	http.SetCookie(writer, &newCookie)
+}
 func StringLimitLen(str string, maxLen int) string {
 	runes := []rune(str)
 	if len(runes) > maxLen {
