@@ -7,6 +7,7 @@ import (
 	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"io/ioutil"
@@ -18,6 +19,50 @@ import (
 
 	"golang.org/x/oauth2"
 )
+
+func DownloadFile(rac *RestApiClient, url string, save_path string) error {
+	rar := NewRestApiRequest("GET", url, nil)
+	resp, err := rac.Do(rar)
+	if err != nil {
+		return nil
+	}
+	if resp.StatusCode != 200 {
+		return errors.New("status:" + resp.Status)
+	}
+	file, err := os.Create(save_path)
+	if err != nil {
+		return err
+	}
+	defer file.Close()
+	_, err = io.Copy(file, resp.Body)
+	if err != nil {
+		return err
+	}
+	return nil
+}
+func GetBingHomeWallpaper(rac *RestApiClient) (string, error) {
+	wallpaper_url := ""
+	rar := NewRestApiRequest("GET", "https://cn.bing.com/?&ensearch=1", nil)
+	if resp, err := rac.Do(rar); err != nil {
+		return "", err
+	} else {
+		if b, err := ioutil.ReadAll(resp.Body); err != nil {
+			return "", err
+		} else {
+			html := string(b)
+			if reg, err := regexp.Compile(`(?:data-ultra-definition-src=").+?(?:&)`); err != nil {
+				return "", err
+			} else {
+				found := reg.FindString(html)
+				reg, err = regexp.Compile(`/.+`)
+				found = reg.FindString(found)
+				found = StringLimitLen(found, len(found)-1)
+				wallpaper_url = "https://bing.com" + found
+			}
+		}
+	}
+	return wallpaper_url, nil
+}
 
 func DelCookie(writer http.ResponseWriter, cookie_name string) {
 	expire := time.Now().Add(-7 * 24 * time.Hour)
