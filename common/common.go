@@ -2,7 +2,6 @@ package common
 
 import (
 	"bytes"
-	"context"
 	"crypto/md5"
 	"crypto/tls"
 	"encoding/hex"
@@ -105,21 +104,11 @@ func NewRestApiClient(skip_tls_verify bool) *RestApiClient {
 }
 
 func (rac *RestApiClient) Do(rar *RestApiRequest) (*http.Response, error) {
-	if rar.token != nil {
-		ts := rar.conf.TokenSource(context.Background(), rar.token)
-		new_token, err := ts.Token()
-		if err != nil {
-			return nil, err
-		}
-		new_token.SetAuthHeader(rar.Request)
-	}
 	return rac.client.Do(rar.Request)
 }
 
 type RestApiRequest struct {
 	Request *http.Request
-	conf    *oauth2.Config
-	token   *oauth2.Token
 }
 
 func NewRestApiRequest(method string, urlPath string, body []byte) *RestApiRequest {
@@ -134,11 +123,6 @@ func NewRestApiRequest(method string, urlPath string, body []byte) *RestApiReque
 		rar.Request = req
 		return rar
 	}
-}
-func (rar *RestApiRequest) UseToken(conf *oauth2.Config, token *oauth2.Token) *RestApiRequest {
-	rar.conf = conf
-	rar.token = token
-	return rar
 }
 func (rar *RestApiRequest) SetAuthHeader(token *oauth2.Token) *RestApiRequest {
 	token.SetAuthHeader(rar.Request)
