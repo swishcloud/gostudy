@@ -49,7 +49,7 @@ func GetBingHomeWallpaper(rac *RestApiClient) (string, error) {
 			return "", err
 		} else {
 			html := string(b)
-			if reg, err := regexp.Compile(`(?:data-ultra-definition-src=").+?(?:&)`); err != nil {
+			if reg, err := regexp.Compile(`(?:data-ultra-definition-src=").+?(?:")`); err != nil {
 				return "", err
 			} else {
 				found := reg.FindString(html)
