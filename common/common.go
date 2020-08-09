@@ -10,6 +10,7 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -104,6 +105,7 @@ func NewRestApiClient(skip_tls_verify bool) *RestApiClient {
 }
 
 func (rac *RestApiClient) Do(rar *RestApiRequest) (*http.Response, error) {
+	log.Println(rar.Request.Method, rar.Request.URL.String())
 	return rac.client.Do(rar.Request)
 }
 
