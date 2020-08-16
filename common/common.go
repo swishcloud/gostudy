@@ -20,6 +20,10 @@ import (
 	"golang.org/x/oauth2"
 )
 
+const (
+	MaxInt64 = 100000000
+)
+
 func DownloadFile(rac *RestApiClient, url string, save_path string) error {
 	rar := NewRestApiRequest("GET", url, nil)
 	resp, err := rac.Do(rar)
