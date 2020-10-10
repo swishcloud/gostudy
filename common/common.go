@@ -21,7 +21,7 @@ import (
 )
 
 const (
-	MaxInt64 = 100000000
+	MaxInt64 int64 = 100000000
 )
 
 func DownloadFile(rac *RestApiClient, url string, save_path string) error {
