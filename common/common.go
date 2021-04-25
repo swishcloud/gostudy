@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"io"
 	"io/ioutil"
-	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -109,7 +108,6 @@ func NewRestApiClient(skip_tls_verify bool) *RestApiClient {
 }
 
 func (rac *RestApiClient) Do(rar *RestApiRequest) (*http.Response, error) {
-	log.Println(rar.Request.Method, rar.Request.URL.String())
 	return rac.client.Do(rar.Request)
 }
 
@@ -190,7 +188,7 @@ func ReadAllFiles(path string, items *[]*FileInfoWrapper) error {
 	}
 	return nil
 }
-func CheckIfFileExits(path string) (bool, error) {
+func CheckIfFileExists(path string) (bool, error) {
 	if _, err := os.Stat(path); err != nil {
 		if os.IsNotExist(err) {
 			return false, nil
