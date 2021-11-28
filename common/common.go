@@ -45,7 +45,7 @@ func DownloadFile(rac *RestApiClient, url string, save_path string) error {
 }
 func GetBingHomeWallpaper(rac *RestApiClient) (string, error) {
 	wallpaper_url := ""
-	rar := NewRestApiRequest("GET", "https://cn.bing.com/?&ensearch=1", nil)
+	rar := NewRestApiRequest("GET", "https://www.bing.com/", nil)
 	if resp, err := rac.Do(rar); err != nil {
 		return "", err
 	} else {
@@ -53,13 +53,10 @@ func GetBingHomeWallpaper(rac *RestApiClient) (string, error) {
 			return "", err
 		} else {
 			html := string(b)
-			if reg, err := regexp.Compile(`(?:data-ultra-definition-src=").+?(?:")`); err != nil {
+			if reg, err := regexp.Compile(`/th\?id=[^"]+`); err != nil {
 				return "", err
 			} else {
 				found := reg.FindString(html)
-				reg, err = regexp.Compile(`/.+`)
-				found = reg.FindString(found)
-				found = StringLimitLen(found, len(found)-1)
 				wallpaper_url = "https://bing.com" + found
 			}
 		}
