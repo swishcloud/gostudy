@@ -2,6 +2,7 @@ package email
 
 import (
 	"crypto/tls"
+	"errors"
 	"fmt"
 	"net"
 	"net/mail"
@@ -14,8 +15,33 @@ type EmailSender struct {
 	Addr     string
 	Name     string
 }
+type loginAuth struct {
+	username, password string
+}
 
-func (sender EmailSender) SendEmail(toAddress string, subject string, body string) {
+func LoginAuth(username, password string) smtp.Auth {
+	return &loginAuth{username, password}
+}
+
+func (a *loginAuth) Start(server *smtp.ServerInfo) (string, []byte, error) {
+	return "LOGIN", []byte{}, nil
+}
+
+func (a *loginAuth) Next(fromServer []byte, more bool) ([]byte, error) {
+	if more {
+		switch string(fromServer) {
+		case "Username:":
+			return []byte(a.username), nil
+		case "Password:":
+			return []byte(a.password), nil
+		default:
+			return nil, errors.New("Unknown fromServer")
+		}
+	}
+	return nil, nil
+}
+
+func (sender EmailSender) SendEmail(toAddress string, subject string, body string, use_plain bool) {
 	from := mail.Address{Name: sender.Name, Address: sender.UserName}
 	to := mail.Address{Name: "", Address: toAddress}
 
@@ -38,52 +64,69 @@ func (sender EmailSender) SendEmail(toAddress string, subject string, body strin
 
 	host, _, _ := net.SplitHostPort(servername)
 
-	auth := smtp.PlainAuth("", sender.UserName, sender.Password, host)
-
 	// TLS config
 	tlsconfig := &tls.Config{
 		InsecureSkipVerify: true,
 		ServerName:         host,
 	}
 
-	conn, err := tls.Dial("tcp", servername, tlsconfig)
-	if err != nil {
-		panic(err)
+	var auth smtp.Auth
+	var c *smtp.Client
+	if use_plain {
+		auth = smtp.PlainAuth("", sender.UserName, sender.Password, host)
+
+		conn, err := tls.Dial("tcp", servername, tlsconfig)
+		if err != nil {
+			panic(err)
+		}
+
+		c, err = smtp.NewClient(conn, host)
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		auth = LoginAuth(sender.UserName, sender.Password)
+
+		conn, err := net.Dial("tcp", servername)
+		if err != nil {
+			panic(err)
+		}
+
+		c, err = smtp.NewClient(conn, host)
+		if err != nil {
+			panic(err)
+		}
 	}
 
-	c, err := smtp.NewClient(conn, host)
-	if err != nil {
+	if err := c.StartTLS(tlsconfig); err != nil {
 		panic(err)
 	}
 
 	// Auth
-	if err = c.Auth(auth); err != nil {
+	if err := c.Auth(auth); err != nil {
 		panic(err)
 	}
 
 	// To && From
-	if err = c.Mail(from.Address); err != nil {
+	if err := c.Mail(from.Address); err != nil {
 		panic(err)
 	}
 
-	if err = c.Rcpt(to.Address); err != nil {
+	if err := c.Rcpt(to.Address); err != nil {
 		panic(err)
 	}
 
 	// Data
-	w, err := c.Data()
-	if err != nil {
+	if w, err := c.Data(); err != nil {
 		panic(err)
-	}
+	} else {
+		if _, err = w.Write([]byte(message)); err != nil {
+			panic(err)
+		}
 
-	_, err = w.Write([]byte(message))
-	if err != nil {
-		panic(err)
-	}
-
-	err = w.Close()
-	if err != nil {
-		panic(err)
+		if err = w.Close(); err != nil {
+			panic(err)
+		}
 	}
 
 	c.Quit()
