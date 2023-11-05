@@ -6,7 +6,7 @@ import (
 	"crypto/cipher"
 	"crypto/rand"
 	"encoding/hex"
-	"github.com/pkg/errors"
+	"errors"
 	"io"
 )
 
@@ -21,15 +21,14 @@ func Unpad(src []byte) ([]byte, error) {
 	unpadding := int(src[length-1])
 
 	if unpadding > length {
-		return nil,errors.New("unpad error. This could happen when incorrect encryption key is used")
+		return nil, errors.New("unpad error. This could happen when incorrect encryption key is used")
 	}
 
 	return src[:(length - unpadding)], nil
 }
 
-func Encrypt(key []byte,str string )(string)  {
-	plaintext :=Pad([]byte(str))
-
+func Encrypt(key []byte, str string) string {
+	plaintext := Pad([]byte(str))
 
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -45,7 +44,7 @@ func Encrypt(key []byte,str string )(string)  {
 	return hex.EncodeToString(ciphertext)
 }
 
-func Decrypt(key []byte,str string)(string,error){
+func Decrypt(key []byte, str string) (string, error) {
 	ciphertext, _ := hex.DecodeString(str)
 	block, err := aes.NewCipher(key)
 	if err != nil {
@@ -55,9 +54,9 @@ func Decrypt(key []byte,str string)(string,error){
 	ciphertext = ciphertext[aes.BlockSize:]
 	mode := cipher.NewCBCDecrypter(block, iv)
 	mode.CryptBlocks(ciphertext, ciphertext)
-	ct,err:=Unpad(ciphertext)
-	if err!=nil{
-		return ``,err
+	ct, err := Unpad(ciphertext)
+	if err != nil {
+		return ``, err
 	}
-	return string(ct),nil
+	return string(ct), nil
 }

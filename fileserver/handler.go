@@ -1,8 +1,8 @@
-package main
+package fileserver
 
 import (
 	"fmt"
-	"github.com/github-123456/gostudy/aesencryption"
+	"gostudy/aesencryption"
 	"html/template"
 	"io/ioutil"
 	"log"
@@ -19,7 +19,7 @@ func index(w http.ResponseWriter, req *http.Request) {
 	tmpl.Execute(w, map[string]string{"Body": "hello world"})
 }
 func FileList(w http.ResponseWriter, req *http.Request) {
-	cookie := http.Cookie{Name: SessionName, Value: aesencryption.Encrypt("hello world!"), Path: "/"}
+	cookie := http.Cookie{Name: SessionName, Value: aesencryption.Encrypt([]byte("key123"), "hello world!"), Path: "/"}
 	http.SetCookie(w, &cookie)
 
 	var data FileListModel

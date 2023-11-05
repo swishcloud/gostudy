@@ -24,15 +24,15 @@ var (
 )
 
 type (
-	DWORD uint32
-	WPARAM uintptr
-	LPARAM uintptr
-	LRESULT uintptr
-	HANDLE uintptr
+	DWORD     uint32
+	WPARAM    uintptr
+	LPARAM    uintptr
+	LRESULT   uintptr
+	HANDLE    uintptr
 	HINSTANCE HANDLE
-	HHOOK HANDLE
-	HWND HANDLE
-	UINT uint32
+	HHOOK     HANDLE
+	HWND      HANDLE
+	UINT      uint32
 	ULONG_PTR uintptr
 )
 type CWPRETSTRUCT struct {

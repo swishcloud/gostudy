@@ -1,9 +1,8 @@
-package main
+package mycmd
 
 import (
 	"fmt"
-
-	"github.com/swishcloud/gostudy/keygenerator"
+	"gostudy/keygenerator"
 
 	"github.com/spf13/cobra"
 )
