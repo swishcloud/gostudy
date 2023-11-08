@@ -4,6 +4,7 @@ import (
 	"gostudy/tcp/message"
 	"log"
 	"net"
+	"os"
 	"testing"
 )
 
@@ -36,7 +37,10 @@ func runServer(n int, c chan int64) {
 	if err != nil {
 		panic(err)
 	}
-	filepath := "/root/Desktop/root1/test function generated"
+	if _, err := os.Stat(".cache"); err != nil {
+		os.Mkdir(".cache", 0755)
+	}
+	filepath := ".cache/test function generated"
 	written, err := s.ReadFile(filepath, msg.Header["md5"].(string), msg.BodySize)
 	if err != nil {
 		panic(err)
@@ -94,7 +98,7 @@ func Test_Session(t *testing.T) {
 			log.Fatal(err)
 		}
 	}
-	flepath := "/root/Desktop/root1/F/large file.zip"
+	flepath := "/lage file.zip"
 	err = s.SendFile(flepath, nil)
 	if err != nil {
 		log.Fatal(err)

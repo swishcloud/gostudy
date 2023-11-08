@@ -1,4 +1,4 @@
-module gostudy/common
+module github.com/gostudy/common
 
 go 1.18
 
