@@ -1,4 +1,4 @@
-module gostudy/common
+module swishcloud/gostudy/common
 
 go 1.18
 
