@@ -1,4 +1,4 @@
-module gostudy/mycmd
+module github.com/swishcloud/gostudy/mycmd
 
 go 1.18
 
