@@ -2,8 +2,9 @@ package main
 
 import (
 	"fmt"
-	"gostudy/messagehook"
 	"unsafe"
+
+	"github.com/swishcloud/gostudy/messagehook"
 )
 
 type (
