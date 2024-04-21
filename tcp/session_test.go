@@ -1,11 +1,12 @@
 package tcp
 
 import (
-	"gostudy/tcp/message"
 	"log"
 	"net"
 	"os"
 	"testing"
+
+	"gostudy/tcp/message"
 )
 
 func runServer(n int, c chan int64) {

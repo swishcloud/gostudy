@@ -1,3 +1,3 @@
-module github.com/common/tcp
+module gostudy/tcp
 
 go 1.18
