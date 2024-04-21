@@ -2,13 +2,14 @@ package fileserver
 
 import (
 	"fmt"
-	"gostudy/aesencryption"
 	"html/template"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"path/filepath"
 	"regexp"
+
+	"github.com/swishcloud/gostudy/aesencryption"
 )
 
 func index(w http.ResponseWriter, req *http.Request) {

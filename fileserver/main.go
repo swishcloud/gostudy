@@ -3,10 +3,11 @@ package fileserver
 import (
 	"flag"
 	"fmt"
-	"gostudy/aesencryption"
 	"log"
 	"net/http"
 	"os"
+
+	"github.com/swishcloud/gostudy/aesencryption"
 )
 
 const SessionName = "session"

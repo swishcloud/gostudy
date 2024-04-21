@@ -2,9 +2,9 @@ package mycmd
 
 import (
 	"fmt"
-	"gostudy/keygenerator"
 
 	"github.com/spf13/cobra"
+	"github.com/swishcloud/gostudy/keygenerator"
 )
 
 var generateKeyCmd = &cobra.Command{

@@ -5,15 +5,16 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"gostudy/tcp/message"
-	"gostudy/x"
 	"io"
 	"log"
 	"net"
 	"os"
 	"strconv"
-	"swishcloud/gostudy/common"
 	"time"
+
+	"github.com/swishcloud/gostudy/common"
+	"github.com/swishcloud/gostudy/tcp/message"
+	"github.com/swishcloud/gostudy/x"
 )
 
 type Session struct {
