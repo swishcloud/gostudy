@@ -1,4 +1,4 @@
-module gostudy
+module github.com/swishcloud/gostudy
 
 go 1.18
 
