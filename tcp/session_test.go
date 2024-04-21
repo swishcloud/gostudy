@@ -6,7 +6,7 @@ import (
 	"os"
 	"testing"
 
-	"gostudy/tcp/message"
+	"github.com/swishcloud/gostudy/tcp/message"
 )
 
 func runServer(n int, c chan int64) {
